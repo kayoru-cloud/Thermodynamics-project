@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermodynamic Perspectives on EV Thermal Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        :root {
+            --primary: #00e5ff;
+            --secondary: #ff00c8;
+            --accent: #00ff88;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --text: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --card-bg: rgba(20, 20, 30, 0.7);
+            --card-border: rgba(0, 229, 255, 0.3);
+            --glow: 0 0 15px var(--primary), 0 0 30px var(--primary);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 200, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 30%);
+            background-attachment: fixed;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #cursor-glow {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.4) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 80px 0 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-wrapper {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            transition: all 0.5s ease;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+        }
+
+        .title:hover {
+            text-shadow: var(--glow);
+            transform: scale(1.05);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .author-info {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-5px) translateX(-50%);
+            }
+        }
+
+        section {
+            margin-bottom: 60px;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 229, 255, 0.1);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin: 25px 0 15px;
+            color: var(--accent);
+        }
+
+        p {
+            line-height: 1.7;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .equation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary);
+            overflow-x: auto;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-table th {
+            background: var(--primary);
+            color: var(--dark-bg);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 229, 255, 0.1);
+        }
+
+        .pcm-list {
+            list-style-type: none;
+            margin: 20px 0;
+        }
+
+        .pcm-list li {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .reference-list {
+            list-style-type: none;
+            margin: 20px 0;
+        }
+
+        .reference-list li {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .conclusion-block {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.1), rgba(0, 255, 136, 0.1));
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid var(--card-border);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .tech-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+
+        .tech-card h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            margin: 0 10px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: var(--dark-bg);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            section {
+                padding: 25px;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+            
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.7rem;
+            }
+            
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div id="cursor-glow"></div>
+
+    <div class="container">
+        <header>
+            <div class="title-wrapper">
+                <h1 class="title" id="typewriter-title"></h1>
+                <p class="subtitle">Advanced Thermodynamic Analysis of Battery Cooling Systems</p>
+                <p class="author-info">Shabd Satsangi, 24466, CHE-205</p>
+            </div>
+            <div class="scroll-indicator">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </header>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-target="introduction">Introduction</div>
+            <div class="nav-tab" data-target="heat-transfer">Heat Transfer</div>
+            <div class="nav-tab" data-target="cooling-systems">Cooling Systems</div>
+            <div class="nav-tab" data-target="pcm">Phase Change Materials</div>
+            <div class="nav-tab" data-target="discussion">Discussion</div>
+            <div class="nav-tab" data-target="conclusion">Conclusion</div>
+        </div>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>The transition to electric vehicles (EVs) represents one of the most significant technological shifts in the automotive industry, driven by environmental concerns and the need to reduce greenhouse gas emissions. However, the performance, safety, and longevity of EVs are critically dependent on effective thermal management systems (TMS).</p>
+            
+            <p>Unlike conventional internal combustion engine vehicles, EVs face unique thermal challenges due to the temperature-sensitive nature of lithium-ion batteries, power electronics, and electric motors. From a thermodynamic perspective, the design and optimization of EV thermal management systems involve complex heat transfer mechanisms, energy conversion efficiencies, and entropy generation considerations that directly impact vehicle range, component lifespan, and overall system performance.</p>
+            
+            <p>The optimal operating temperature range for lithium-ion batteries is typically between <span class="highlight">20°C and 40°C</span>, with performance degradation and safety risks occurring outside this window. At elevated temperatures above 45°C, chemical side reactions accelerate, leading to capacity fade and potential thermal runaway. Conversely, at temperatures below 0°C, battery internal resistance increases significantly, reducing power output and charging efficiency by up to 40%.</p>
+            
+            <div class="chart-container">
+                <canvas id="batteryTempChart"></canvas>
+            </div>
+            
+            <p>This narrow operational window necessitates sophisticated thermal management strategies that can maintain temperature uniformity across battery packs while minimizing energy consumption. The thermodynamic analysis of these systems encompasses the first and second laws of thermodynamics, examining heat generation rates, cooling effectiveness, and irreversibilities associated with various thermal management approaches.</p>
+        </section>
+
+        <section id="heat-transfer">
+            <h2>2. Heat Generation and Transfer Mechanisms</h2>
+            
+            <h3>2.1 Thermodynamic Analysis of Battery Heat Generation</h3>
+            <p>The heat generation in lithium-ion batteries can be described through thermodynamic principles combining irreversible and reversible heat effects. The total heat generation rate (q) is expressed as:</p>
+            
+            <div class="equation">
+                $$q = I²R + IT\frac{dE}{dT}$$
+            </div>
+            
+            <p>Where:</p>
+            <ul class="pcm-list">
+                <li>I = current (A)</li>
+                <li>R = internal resistance (Ω)</li>
+                <li>E = open-circuit voltage (V)</li>
+                <li>T = temperature (K)</li>
+                <li>dE/dT = temperature coefficient of voltage</li>
+            </ul>
+            
+            <p>The first term represents irreversible Joule heating due to internal resistance, while the second term accounts for reversible entropic heat generation. During discharge, the irreversible heating dominates, with internal resistance being temperature-dependent and following an Arrhenius-type relationship.</p>
+            
+            <h3>2.2 Heat Transfer Modes</h3>
+            <p>The thermal management of EV batteries involves all three modes of heat transfer:</p>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Conduction</h4>
+                    <div class="equation">$$q = -kA\frac{dT}{dx}$$</div>
+                    <p>Within battery cells and through contact interfaces. Thermal conductivity: k = 1-30 W/m·K (anisotropic in battery packs)</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Convection</h4>
+                    <div class="equation">$$q = hA(T_s - T_∞)$$</div>
+                    <p>Between coolant and heat transfer surfaces. Air cooling: h = 25-250 W/m²·K. Liquid cooling: h = 500-5000 W/m²·K</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Radiation</h4>
+                    <div class="equation">$$q = εσA(T₁⁴ - T₂⁴)$$</div>
+                    <p>Between surfaces at different temperatures. Minor contribution in typical EV battery systems.</p>
+                </div>
+            </div>
+            
+            <p>The thermal resistance network approach enables systematic analysis of heat flow paths from the battery cell core to the ambient environment. The total thermal resistance (R<sub>total</sub>) is the sum of individual resistances in series:</p>
+            
+            <div class="equation">
+                $$R_{total} = R_{cell} + R_{contact} + R_{cold\_plate} + R_{convection}$$
+            </div>
+        </section>
+
+        <section id="cooling-systems">
+            <h2>3. Thermal Management System Architectures</h2>
+            
+            <h3>3.1 Active Cooling Systems</h3>
+            <p>Liquid cooling systems utilize single-phase coolants or two-phase refrigerants to extract heat from battery packs and power electronics. From a thermodynamic standpoint, liquid cooling systems offer several advantages:</p>
+            
+            <div class="chart-container">
+                <canvas id="coolingComparisonChart"></canvas>
+            </div>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Air Cooling</th>
+                        <th>Liquid Cooling</th>
+                        <th>Refrigerant Cooling</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Heat Transfer Coefficient</td>
+                        <td>25-250 W/m²·K</td>
+                        <td>500-5000 W/m²·K</td>
+                        <td>3000-15000 W/m²·K</td>
+                    </tr>
+                    <tr>
+                        <td>Temperature Uniformity</td>
+                        <td>Poor (10-15°C)</td>
+                        <td>Good (3-5°C)</td>
+                        <td>Excellent (&lt;2°C)</td>
+                    </tr>
+                    <tr>
+                        <td>System Weight</td>
+                        <td>Light</td>
+                        <td>Medium</td>
+                        <td>Heavy</td>
+                    </tr>
+                    <tr>
+                        <td>Complexity</td>
+                        <td>Simple</td>
+                        <td>Moderate</td>
+                        <td>Complex</td>
+                    </tr>
+                    <tr>
+                        <td>COP</td>
+                        <td>N/A (fan power)</td>
+                        <td>10-30</td>
+                        <td>2-4</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p>The vapor compression refrigeration cycle operates with four main components: compressor, condenser, expansion valve, and evaporator. The thermodynamic efficiency is limited by Carnot COP:</p>
+            
+            <div class="equation">
+                $$COP_{Carnot} = \frac{T_L}{T_H - T_L}$$
+            </div>
+            
+            <p>Where T<sub>L</sub> is the low temperature (battery/evaporator) and T<sub>H</sub> is the high temperature (condenser). Real systems achieve 40-60% of the Carnot limit due to irreversibilities in compression, heat exchange, and throttling.</p>
+        </section>
+
+        <section id="pcm">
+            <h2>4. Phase Change Materials and Thermal Storage</h2>
+            
+            <p>Phase change materials (PCMs) represent a passive thermal management approach that exploits latent heat storage during solid-liquid phase transitions. PCMs absorb heat at nearly constant temperature during melting, providing temperature stabilization without active energy input.</p>
+            
+            <h3>Thermodynamic Principles of PCM Systems</h3>
+            <p>The total energy storage capacity of a PCM system includes both sensible and latent heat:</p>
+            
+            <div class="equation">
+                $$Q_{total} = m_{pcm}[c_{p,s}(T_m - T_i) + h_{fg} + c_{p,l}(T_f - T_m)]$$
+            </div>
+            
+            <p>Where:</p>
+            <ul class="pcm-list">
+                <li>m<sub>pcm</sub> = mass of PCM</li>
+                <li>c<sub>p,s</sub>, c<sub>p,l</sub> = specific heat capacity in solid and liquid phases</li>
+                <li>T<sub>m</sub> = melting temperature</li>
+                <li>h<sub>fg</sub> = latent heat of fusion</li>
+                <li>T<sub>i</sub>, T<sub>f</sub> = initial and final temperatures</li>
+            </ul>
+            
+            <h3>Common PCMs for Battery Thermal Management</h3>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Paraffin-based PCMs</h4>
+                    <p>Melting temperature range: 30-45°C (ideal for Li-ion batteries)</p>
+                    <p>Latent heat of fusion: 150-250 kJ/kg</p>
+                    <p>Thermal conductivity: 0.2-0.5 W/m·K (major limitation)</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Enhanced PCMs</h4>
+                    <p>Expanded Graphite Matrix: up to 60× improvement in conductivity</p>
+                    <p>Metal Foam Insertion: 10-20× improvement</p>
+                    <p>Nanoparticle Additives: 2-5× improvement</p>
+                </div>
+            </div>
+            
+            <p>The effectiveness of PCM systems is quantified using dimensionless numbers:</p>
+            
+            <div class="equation">
+                $$\text{Stefan Number: } Ste = \frac{c_p \Delta T}{h_{fg}}$$
+            </div>
+            
+            <div class="equation">
+                $$\text{Biot Number: } Bi = \frac{hL}{k}$$
+            </div>
+            
+            <div class="equation">
+                $$\text{Fourier Number: } Fo = \frac{\alpha t}{L^2}$$
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="pcmPerformanceChart"></canvas>
+            </div>
+        </section>
+
+        <section id="discussion">
+            <h2>5. Discussion</h2>
+            
+            <p>The thermodynamic optimization of EV thermal management systems involves complex trade-offs between cooling effectiveness, energy consumption, system complexity, weight, and cost. Second law analysis reveals that conventional vapor compression cooling systems generate significant entropy due to compressor irreversibilities, heat exchanger temperature differences, and throttling processes.</p>
+            
+            <p>The exergy destruction in these systems can account for 30-50% of input work, indicating substantial room for thermodynamic improvement through:</p>
+            
+            <ul class="pcm-list">
+                <li><span class="highlight">Reduced Temperature Lifts:</span> Minimizing temperature difference between heat source and sink</li>
+                <li><span class="highlight">Enhanced Heat Exchanger Effectiveness:</span> Increasing heat transfer area and flow rates</li>
+                <li><span class="highlight">Variable Speed Compressors and Pumps:</span> Matching cooling capacity to actual thermal loads</li>
+            </ul>
+            
+            <h3>Integration with Waste Heat Recovery</h3>
+            <p>Power electronics and electric motors in EVs generate substantial heat that represents a valuable energy resource. This waste heat can be utilized for:</p>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Cabin Heating</h4>
+                    <p>Heat pump systems operating in heating mode achieve COP > 3</p>
+                    <p>Range improvement in cold weather: 15-25% compared to resistive heating</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Battery Preheating</h4>
+                    <p>Reusing component waste heat for battery warming at low temperatures</p>
+                    <p>Enables faster charging in cold conditions (charging rate increases 2-3× when battery is preheated to 20°C)</p>
+                </div>
+            </div>
+            
+            <h3>Emerging Technologies</h3>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Thermoelectric Cooling</h4>
+                    <p>Solid-state Peltier effect devices</p>
+                    <p>Advantages: No moving parts, compact, precise control</p>
+                    <p>Challenges: Low COP (0.3-0.8), high cost</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Magnetocaloric Refrigeration</h4>
+                    <p>Exploits magnetocaloric effect in certain materials</p>
+                    <p>Potential COP: 40-60% of Carnot limit</p>
+                    <p>Currently in research phase for EV applications</p>
+                </div>
+                
+                <div class="tech-card">
+                    <h4>Immersion Cooling</h4>
+                    <p>Direct immersion of battery cells in dielectric fluid</p>
+                    <p>Superior heat transfer coefficient: h = 1000-3000 W/m²·K</p>
+                    <p>Challenges: Fluid compatibility, sealing, weight</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion">
+            <h2>6. Concluding Remarks</h2>
+            
+            <div class="conclusion-block">
+                <p>Thermodynamic analysis provides fundamental insights into the design and optimization of EV thermal management systems, revealing the complex interplay between heat generation, transfer mechanisms, and system-level energy efficiency.</p>
+                
+                <p>The stringent temperature requirements of lithium-ion batteries (20-40°C optimal range) necessitate sophisticated thermal management strategies that can maintain temperature uniformity within ±3-5°C while minimizing parasitic energy consumption to preserve vehicle driving range.</p>
+                
+                <p>Liquid cooling systems currently represent the most effective approach for high-performance EVs, offering superior heat transfer characteristics while maintaining acceptable COP values. Phase change materials offer a promising passive thermal management solution, leveraging latent heat storage to provide temperature stabilization without active energy consumption.</p>
+            </div>
+            
+            <p>Future developments in EV thermal management will likely focus on multi-objective optimization incorporating thermal performance, energy efficiency, weight, cost, and environmental considerations. Key research directions include:</p>
+            
+            <ul class="pcm-list">
+                <li><span class="highlight">Advanced Materials:</span> High thermal conductivity PCMs, low-global-warming-potential refrigerants</li>
+                <li><span class="highlight">System Integration:</span> Holistic thermal management with intelligent control strategies</li>
+                <li><span class="highlight">Predictive Control:</span> Machine learning algorithms for anticipatory thermal management</li>
+                <li><span class="highlight">Solid-State Cooling:</span> Thermoelectric and magnetocaloric technologies</li>
+            </ul>
+            
+            <p>As battery energy densities continue to increase and fast charging capabilities expand, thermal management challenges will intensify with heat generation rates potentially doubling. This necessitates continued innovation in thermal management from a thermodynamic perspective, with emphasis on minimizing entropy generation, maximizing exergy efficiency, and developing fundamentally new cooling approaches.</p>
+            
+            <p>The successful development and optimization of EV thermal management systems will remain a critical enabling technology for the widespread electrification of transportation, directly impacting vehicle performance, safety, reliability, and total cost of ownership.</p>
+        </section>
+
+        <section>
+            <h2>References</h2>
+            
+            <ul class="reference-list">
+                <li>Modine Manufacturing Company. (2024). How It Works: Battery Thermal Management System.</li>
+                <li>Pesaran, A. A., Vlahinos, A., and Stuart, T. (2003). Cooling and preheating of batteries in hybrid electric vehicles.</li>
+                <li>Kim, J., Oh, J., and Lee, H. (2019). Review on battery thermal management system for electric vehicles.</li>
+                <li>Battery Thermal Management Systems of Electric Vehicles. (2014). Chalmers University of Technology Master's Thesis.</li>
+                <li>Cao, J., Ling, Z., Fang, X., and Zhang, Z. (2020). Delayed liquid cooling strategy with phase change material.</li>
+                <li>Thermal Management Systems for Lithium-Ion Batteries for Electric Vehicles: A Review. (2025). MDPI Materials.</li>
+                <li>Wu, W., Wang, S., Wu, W., Chen, K., Hong, S., and Lai, Y. (2019). A critical review of battery thermal performance.</li>
+                <li>Rao, Z., Wang, S., Wu, M., Lin, Z., and Li, F. (2013). Experimental investigation on thermal management of electric vehicle battery with heat pipe.</li>
+                <li>Jaguemont, J., Boulon, L., and Dubé, Y. (2016). A comprehensive review of lithium-ion batteries used in hybrid and electric vehicles at cold temperatures.</li>
+                <li>Phase Change Materials Application in Battery Thermal Management System: A Review. (2020). PMC.</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>Thermodynamic Perspectives on Electric Vehicle Thermal Management Systems</p>
+            <p>Shabd Satsangi | CHE-205 | 2024</p>
+        </footer>
+    </div>
+
+    <script>
+        // Typewriter animation for title
+        const titleElement = document.getElementById('typewriter-title');
+        const titleText = "Thermodynamic Perspectives on Electric Vehicle Thermal Management Systems";
+        let titleIndex = 0;
+        
+        function typeWriter() {
+            if (titleIndex < titleText.length) {
+                titleElement.innerHTML += titleText.charAt(titleIndex);
+                titleIndex++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        // Initialize typewriter after page loads
+        window.addEventListener('load', typeWriter);
+        
+        // Particle.js configuration
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: ["#00e5ff", "#ff00c8", "#00ff88"] },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#00e5ff",
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+        
+        // Cursor glow effect
+        const cursorGlow = document.getElementById('cursor-glow');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+        
+        document.addEventListener('mousedown', () => {
+            cursorGlow.style.width = '120px';
+            cursorGlow.style.height = '120px';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            cursorGlow.style.width = '100px';
+            cursorGlow.style.height = '100px';
+        });
+        
+        // Navigation tabs
+        const navTabs = document.querySelectorAll('.nav-tab');
+        
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                navTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Scroll to target section
+                const targetId = tab.getAttribute('data-target');
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Initialize charts
+        window.addEventListener('load', () => {
+            // Battery Temperature Chart
+            const batteryTempCtx = document.getElementById('batteryTempChart').getContext('2d');
+            new Chart(batteryTempCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'],
+                    datasets: [{
+                        label: 'Battery Temperature (°C)',
+                        data: [15, 18, 22, 28, 35, 42, 48, 52, 55, 58, 60],
+                        borderColor: '#00e5ff',
+                        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Optimal Range',
+                        data: [20, 20, 20, 20, 40, 40, 40, 40, 40, 40, 40],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: true,
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                color: '#f0f0f0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)',
+                                color: '#f0f0f0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Battery Temperature Over Time',
+                            color: '#f0f0f0',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Cooling Comparison Chart
+            const coolingComparisonCtx = document.getElementById('coolingComparisonChart').getContext('2d');
+            new Chart(coolingComparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Air Cooling', 'Liquid Cooling', 'Refrigerant Cooling'],
+                    datasets: [{
+                        label: 'Heat Transfer Coefficient (W/m²·K)',
+                        data: [150, 3000, 10000],
+                        backgroundColor: [
+                            'rgba(255, 0, 200, 0.7)',
+                            'rgba(0, 229, 255, 0.7)',
+                            'rgba(0, 255, 136, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 0, 200, 1)',
+                            'rgba(0, 229, 255, 1)',
+                            'rgba(0, 255, 136, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Heat Transfer Coefficient (W/m²·K)',
+                                color: '#f0f0f0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Comparison of Cooling System Performance',
+                            color: '#f0f0f0',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // PCM Performance Chart
+            const pcmPerformanceCtx = document.getElementById('pcmPerformanceChart').getContext('2d');
+            new Chart(pcmPerformanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '5', '10', '15', '20', '25', '30', '35', '40', '45', '50'],
+                    datasets: [{
+                        label: 'Without PCM',
+                        data: [25, 28, 32, 38, 45, 50, 52, 53, 54, 55, 56],
+                        borderColor: '#ff00c8',
+                        backgroundColor: 'rgba(255, 0, 200, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'With PCM',
+                        data: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                color: '#f0f0f0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)',
+                                color: '#f0f0f0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f0f0f0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Temperature Stabilization with PCM',
+                            color: '#f0f0f0',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Render LaTeX equations
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ]
+            });
+        });
+    </script>
+</body>
+</html>
